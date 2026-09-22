@@ -2,9 +2,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
+
     <title>Dynamic Tableau Writeback</title>
 
     <style>
+
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -12,22 +14,17 @@
         }
 
         h2 {
-            margin-bottom: 5px;
-        }
-
-        .subtitle {
-            color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         select {
             padding: 8px;
             min-width: 250px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .status {
-            margin: 10px 0;
+            margin: 5px 0 10px 0;
             font-weight: bold;
         }
 
@@ -66,38 +63,52 @@
             box-sizing: border-box;
         }
 
+        /*
+         * Highlight newly added rows
+         */
         .new-row td {
             background-color: #fffdf2;
         }
 
         .actions {
             margin-top: 15px;
+
             display: flex;
+
             gap: 10px;
         }
 
         button {
             padding: 9px 16px;
+
             border: none;
+
             border-radius: 4px;
+
             cursor: pointer;
+
             font-size: 14px;
         }
 
         .add-button {
             background-color: #198754;
+
             color: white;
         }
 
         .submit-button {
             background-color: #0d6efd;
+
             color: white;
         }
 
         .remove-button {
             background-color: #dc3545;
+
             color: white;
+
             padding: 5px 10px;
+
             font-size: 12px;
         }
 
@@ -111,53 +122,90 @@
 
         textarea {
             width: 100%;
+
             height: 250px;
+
             box-sizing: border-box;
+
             font-family: monospace;
+
             font-size: 12px;
         }
+
     </style>
 </head>
+
 
 <body>
 
     <h2>Tableau Worksheet Data</h2>
 
-    <div class="subtitle">
-        Select a worksheet to view its data, edit values, or add new rows.
-    </div>
+
+    <!-- Worksheet selection -->
 
     <label for="worksheetSelect">
+
         <strong>Select Worksheet:</strong>
+
     </label>
 
     <br>
 
+
     <select id="worksheetSelect">
-        <option value="">-- Select Worksheet --</option>
+
+        <option value="">
+            -- Select Worksheet --
+        </option>
+
     </select>
 
-    <div id="status" class="status"></div>
 
-    <div class="table-wrapper">
-        <div id="tableContainer"></div>
+    <!-- Simple status -->
+
+    <div
+        id="status"
+        class="status">
     </div>
 
-    <div id="actions" class="actions" style="display:none;">
+
+    <!-- Tableau data table -->
+
+    <div class="table-wrapper">
+
+        <div id="tableContainer"></div>
+
+    </div>
+
+
+    <!-- Buttons -->
+
+    <div
+        id="actions"
+        class="actions"
+        style="display:none;">
 
         <button
             id="addRowButton"
             class="add-button">
+
             + Add Row
+
         </button>
+
 
         <button
             id="submitButton"
             class="submit-button">
+
             Submit All
+
         </button>
 
     </div>
+
+
+    <!-- Payload display -->
 
     <div
         id="payloadContainer"
@@ -165,6 +213,7 @@
         style="display:none;">
 
         <h3>Generated Payload</h3>
+
 
         <textarea
             id="payloadOutput"
@@ -174,13 +223,16 @@
     </div>
 
 
+    <!-- Tableau Extensions API -->
+
     <script src="tableau.extensions.1.latest.js"></script>
+
 
     <script>
 
-        // -----------------------------------------
+        // =====================================================
         // Global variables
-        // -----------------------------------------
+        // =====================================================
 
         let worksheets = [];
 
@@ -189,99 +241,140 @@
         let newRowCounter = 0;
 
 
-        // -----------------------------------------
+        // =====================================================
         // DOM elements
-        // -----------------------------------------
+        // =====================================================
 
         const worksheetSelect =
-            document.getElementById("worksheetSelect");
+            document.getElementById(
+                "worksheetSelect"
+            );
+
 
         const status =
-            document.getElementById("status");
+            document.getElementById(
+                "status"
+            );
+
 
         const tableContainer =
-            document.getElementById("tableContainer");
+            document.getElementById(
+                "tableContainer"
+            );
+
 
         const actions =
-            document.getElementById("actions");
+            document.getElementById(
+                "actions"
+            );
+
 
         const addRowButton =
-            document.getElementById("addRowButton");
+            document.getElementById(
+                "addRowButton"
+            );
+
 
         const submitButton =
-            document.getElementById("submitButton");
+            document.getElementById(
+                "submitButton"
+            );
+
 
         const payloadContainer =
-            document.getElementById("payloadContainer");
+            document.getElementById(
+                "payloadContainer"
+            );
+
 
         const payloadOutput =
-            document.getElementById("payloadOutput");
+            document.getElementById(
+                "payloadOutput"
+            );
 
 
-        // -----------------------------------------
+        // =====================================================
         // Initialize Tableau Extension
-        // -----------------------------------------
+        // =====================================================
 
-        tableau.extensions.initializeDialogAsync()
+        tableau.extensions
+            .initializeDialogAsync()
+
             .then(function () {
 
                 status.textContent =
-                    "Extension initialized successfully.";
+                    "Ready";
 
                 loadWorksheets();
 
             })
+
             .catch(function (error) {
 
                 status.textContent =
-                    "Initialization failed: " + error.message;
+                    "Initialization failed";
 
                 console.error(error);
 
             });
 
 
-        // -----------------------------------------
+        // =====================================================
         // Load worksheets from current dashboard
-        // -----------------------------------------
+        // =====================================================
 
         async function loadWorksheets() {
 
             try {
 
                 const dashboard =
-                    tableau.extensions.dashboardContent.dashboard;
+                    tableau.extensions
+                        .dashboardContent
+                        .dashboard;
+
 
                 worksheets =
                     dashboard.worksheets;
 
+
                 worksheetSelect.innerHTML =
                     '<option value="">-- Select Worksheet --</option>';
 
-                worksheets.forEach(function (worksheet, index) {
 
-                    const option =
-                        document.createElement("option");
+                worksheets.forEach(
+                    function (worksheet, index) {
 
-                    option.value = index;
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
 
-                    option.textContent =
-                        worksheet.name;
 
-                    worksheetSelect.appendChild(option);
+                        option.value =
+                            index;
 
-                });
+
+                        option.textContent =
+                            worksheet.name;
+
+
+                        worksheetSelect.appendChild(
+                            option
+                        );
+
+                    }
+                );
+
 
                 status.textContent =
-                    worksheets.length +
-                    " worksheet(s) found on this dashboard.";
+                    "Ready";
 
             }
+
             catch (error) {
 
                 status.textContent =
-                    "Unable to load worksheets: " +
-                    error.message;
+                    "Unable to load worksheets";
 
                 console.error(error);
 
@@ -290,9 +383,9 @@
         }
 
 
-        // -----------------------------------------
+        // =====================================================
         // Worksheet selection
-        // -----------------------------------------
+        // =====================================================
 
         worksheetSelect.addEventListener(
             "change",
@@ -301,15 +394,21 @@
                 const selectedIndex =
                     worksheetSelect.value;
 
+
+                // Nothing selected
                 if (selectedIndex === "") {
 
-                    tableContainer.innerHTML = "";
+                    tableContainer.innerHTML =
+                        "";
 
-                    actions.style.display = "none";
+                    actions.style.display =
+                        "none";
 
-                    payloadContainer.style.display = "none";
+                    payloadContainer.style.display =
+                        "none";
 
-                    currentDataTable = null;
+                    currentDataTable =
+                        null;
 
                     return;
                 }
@@ -318,54 +417,83 @@
                 try {
 
                     status.textContent =
-                        "Loading worksheet data...";
+                        "Loading...";
 
 
-                    // Clear previous new-row counter
+                    /*
+                     * Reset new-row counter.
+                     *
+                     * displayTable() also rebuilds
+                     * the table, so old new rows
+                     * disappear when another worksheet
+                     * is selected.
+                     */
+
                     newRowCounter = 0;
 
 
                     const worksheet =
-                        worksheets[selectedIndex];
+                        worksheets[
+                            selectedIndex
+                        ];
 
 
+                    // -----------------------------------------
                     // Get summary data reader
+                    // -----------------------------------------
+
                     const dataTableReader =
-                        await worksheet.getSummaryDataReaderAsync();
+                        await worksheet
+                            .getSummaryDataReaderAsync();
 
 
+                    // -----------------------------------------
                     // Get all pages
+                    // -----------------------------------------
+
                     const dataTable =
-                        await dataTableReader.getAllPagesAsync();
+                        await dataTableReader
+                            .getAllPagesAsync();
 
 
+                    // -----------------------------------------
                     // Release reader
-                    await dataTableReader.releaseAsync();
+                    // -----------------------------------------
+
+                    await dataTableReader
+                        .releaseAsync();
 
 
+                    // Store current data
                     currentDataTable =
                         dataTable;
 
 
-                    // Display data
-                    displayTable(dataTable);
+                    // Display table
+                    displayTable(
+                        dataTable
+                    );
 
 
-                    actions.style.display = "flex";
+                    // Show buttons
+                    actions.style.display =
+                        "flex";
 
-                    payloadContainer.style.display = "none";
+
+                    // Hide old payload
+                    payloadContainer.style.display =
+                        "none";
 
 
                     status.textContent =
-                        dataTable.data.length +
-                        " Tableau row(s) loaded.";
+                        "Loaded";
 
                 }
+
                 catch (error) {
 
                     status.textContent =
-                        "Unable to load worksheet data: " +
-                        error.message;
+                        "Unable to load worksheet data";
 
                     console.error(error);
 
@@ -375,91 +503,132 @@
         );
 
 
-        // -----------------------------------------
+        // =====================================================
         // Display Tableau data
-        // -----------------------------------------
+        // =====================================================
 
-        function displayTable(dataTable) {
+        function displayTable(
+            dataTable
+        ) {
 
-            tableContainer.innerHTML = "";
+            // Clear old table
+            tableContainer.innerHTML =
+                "";
 
 
+            // Create table
             const table =
-                document.createElement("table");
+                document.createElement(
+                    "table"
+                );
 
 
-            // -------------------------------------
+            // =================================================
             // Header
-            // -------------------------------------
+            // =================================================
 
             const thead =
-                document.createElement("thead");
+                document.createElement(
+                    "thead"
+                );
+
 
             const headerRow =
-                document.createElement("tr");
+                document.createElement(
+                    "tr"
+                );
 
+
+            // -----------------------------------------
+            // Tableau columns
+            // -----------------------------------------
 
             dataTable.columns.forEach(
                 function (column) {
 
                     const th =
-                        document.createElement("th");
+                        document.createElement(
+                            "th"
+                        );
+
 
                     th.textContent =
                         column.fieldName;
 
-                    headerRow.appendChild(th);
+
+                    headerRow.appendChild(
+                        th
+                    );
 
                 }
             );
 
 
+            // -----------------------------------------
             // User Input column
+            // -----------------------------------------
+
             const userInputHeader =
-                document.createElement("th");
+                document.createElement(
+                    "th"
+                );
+
 
             userInputHeader.textContent =
                 "User Input";
 
-            headerRow.appendChild(userInputHeader);
+
+            headerRow.appendChild(
+                userInputHeader
+            );
 
 
-            // Action column
-            const actionHeader =
-                document.createElement("th");
-
-            actionHeader.textContent =
-                "Action";
-
-            headerRow.appendChild(actionHeader);
+            thead.appendChild(
+                headerRow
+            );
 
 
-            thead.appendChild(headerRow);
+            table.appendChild(
+                thead
+            );
 
-            table.appendChild(thead);
 
-
-            // -------------------------------------
+            // =================================================
             // Body
-            // -------------------------------------
+            // =================================================
 
             const tbody =
-                document.createElement("tbody");
+                document.createElement(
+                    "tbody"
+                );
 
 
             dataTable.data.forEach(
-                function (row, rowIndex) {
+                function (
+                    row,
+                    rowIndex
+                ) {
 
                     const tr =
-                        document.createElement("tr");
+                        document.createElement(
+                            "tr"
+                        );
 
 
+                    // -----------------------------------------
                     // Tableau columns
+                    // -----------------------------------------
+
                     dataTable.columns.forEach(
-                        function (column, columnIndex) {
+                        function (
+                            column,
+                            columnIndex
+                        ) {
 
                             const td =
-                                document.createElement("td");
+                                document.createElement(
+                                    "td"
+                                );
 
 
                             const cell =
@@ -472,27 +641,46 @@
                                 "";
 
 
-                            tr.appendChild(td);
+                            tr.appendChild(
+                                td
+                            );
 
                         }
                     );
 
 
+                    // -----------------------------------------
                     // User Input
+                    // -----------------------------------------
+
                     const userInputTd =
-                        document.createElement("td");
+                        document.createElement(
+                            "td"
+                        );
 
 
                     const userInput =
-                        document.createElement("input");
+                        document.createElement(
+                            "input"
+                        );
 
-                    userInput.type = "text";
+
+                    userInput.type =
+                        "text";
+
 
                     userInput.className =
                         "user-input";
 
+
                     userInput.placeholder =
                         "Enter value";
+
+
+                    /*
+                     * Remember which Tableau row
+                     * this input belongs to.
+                     */
 
                     userInput.dataset.rowIndex =
                         rowIndex;
@@ -502,39 +690,35 @@
                         userInput
                     );
 
+
                     tr.appendChild(
                         userInputTd
                     );
 
 
-                    // Action column
-                    const actionTd =
-                        document.createElement("td");
-
-                    actionTd.textContent =
-                        "Existing";
-
-                    tr.appendChild(
-                        actionTd
+                    tbody.appendChild(
+                        tr
                     );
-
-
-                    tbody.appendChild(tr);
 
                 }
             );
 
 
-            table.appendChild(tbody);
+            table.appendChild(
+                tbody
+            );
 
-            tableContainer.appendChild(table);
+
+            tableContainer.appendChild(
+                table
+            );
 
         }
 
 
-        // -----------------------------------------
+        // =====================================================
         // Add New Row
-        // -----------------------------------------
+        // =====================================================
 
         addRowButton.addEventListener(
             "click",
@@ -543,23 +727,31 @@
                 if (!currentDataTable) {
 
                     status.textContent =
-                        "Please select a worksheet first.";
+                        "Select a worksheet first.";
 
                     return;
 
                 }
 
 
+                // Find current table
                 const table =
-                    tableContainer.querySelector("table");
+                    tableContainer.querySelector(
+                        "table"
+                    );
+
 
                 const tbody =
-                    table.querySelector("tbody");
+                    table.querySelector(
+                        "tbody"
+                    );
 
 
-                // Create new table row
+                // Create new row
                 const tr =
-                    document.createElement("tr");
+                    document.createElement(
+                        "tr"
+                    );
 
 
                 tr.className =
@@ -573,26 +765,35 @@
                 newRowCounter++;
 
 
-                // ---------------------------------
-                // Create input for every Tableau
-                // column
-                // ---------------------------------
+                // =================================================
+                // Create input for every Tableau column
+                // =================================================
 
                 currentDataTable.columns.forEach(
-                    function (column, columnIndex) {
+                    function (
+                        column,
+                        columnIndex
+                    ) {
 
                         const td =
-                            document.createElement("td");
+                            document.createElement(
+                                "td"
+                            );
 
 
                         const input =
-                            document.createElement("input");
+                            document.createElement(
+                                "input"
+                            );
 
 
-                        input.type = "text";
+                        input.type =
+                            "text";
+
 
                         input.className =
                             "new-row-input";
+
 
                         input.placeholder =
                             column.fieldName;
@@ -602,30 +803,42 @@
                             columnIndex;
 
 
-                        td.appendChild(input);
+                        td.appendChild(
+                            input
+                        );
 
-                        tr.appendChild(td);
+
+                        tr.appendChild(
+                            td
+                        );
 
                     }
                 );
 
 
-                // ---------------------------------
-                // User Input column
-                // ---------------------------------
+                // =================================================
+                // User Input for new row
+                // =================================================
 
                 const userInputTd =
-                    document.createElement("td");
+                    document.createElement(
+                        "td"
+                    );
 
 
                 const userInput =
-                    document.createElement("input");
+                    document.createElement(
+                        "input"
+                    );
 
 
-                userInput.type = "text";
+                userInput.type =
+                    "text";
+
 
                 userInput.className =
-                    "new-row-input";
+                    "new-row-user-input";
+
 
                 userInput.placeholder =
                     "Enter value";
@@ -635,25 +848,31 @@
                     userInput
                 );
 
+
                 tr.appendChild(
                     userInputTd
                 );
 
 
-                // ---------------------------------
+                // =================================================
                 // Remove button
-                // ---------------------------------
+                // =================================================
 
                 const actionTd =
-                    document.createElement("td");
+                    document.createElement(
+                        "td"
+                    );
 
 
                 const removeButton =
-                    document.createElement("button");
+                    document.createElement(
+                        "button"
+                    );
 
 
                 removeButton.textContent =
                     "Remove";
+
 
                 removeButton.className =
                     "remove-button";
@@ -674,23 +893,27 @@
                 );
 
 
-                tr.appendChild(actionTd);
+                tr.appendChild(
+                    actionTd
+                );
 
 
-                // Add row to table
-                tbody.appendChild(tr);
+                // Add new row to table
+                tbody.appendChild(
+                    tr
+                );
 
 
                 status.textContent =
-                    "New row added. You can enter the values.";
+                    "New row added";
 
             }
         );
 
 
-        // -----------------------------------------
+        // =====================================================
         // Submit All
-        // -----------------------------------------
+        // =====================================================
 
         submitButton.addEventListener(
             "click",
@@ -699,7 +922,7 @@
                 if (!currentDataTable) {
 
                     status.textContent =
-                        "Please select a worksheet first.";
+                        "Select a worksheet first.";
 
                     return;
 
@@ -709,9 +932,9 @@
                 const payload = [];
 
 
-                // =================================
+                // =================================================
                 // EXISTING TABLEAU ROWS
-                // =================================
+                // =================================================
 
                 const existingInputs =
                     document.querySelectorAll(
@@ -726,9 +949,15 @@
                             input.value.trim();
 
 
-                        // Ignore unchanged/empty rows
+                        /*
+                         * If the user didn't enter
+                         * anything, ignore this row.
+                         */
+
                         if (userValue === "") {
+
                             return;
+
                         }
 
 
@@ -739,17 +968,28 @@
 
 
                         const tableauRow =
-                            currentDataTable.data[rowIndex];
+                            currentDataTable
+                                .data[rowIndex];
 
 
-                        const rowObject = {};
+                        const rowObject =
+                            {};
 
+
+                        // -----------------------------------------
+                        // Add Tableau fields
+                        // -----------------------------------------
 
                         currentDataTable.columns.forEach(
-                            function (column, columnIndex) {
+                            function (
+                                column,
+                                columnIndex
+                            ) {
 
                                 const cell =
-                                    tableauRow[columnIndex];
+                                    tableauRow[
+                                        columnIndex
+                                    ];
 
 
                                 rowObject[
@@ -763,23 +1003,34 @@
                         );
 
 
+                        // -----------------------------------------
+                        // Add user value
+                        // -----------------------------------------
+
                         rowObject.UserInput =
                             userValue;
 
+
+                        // -----------------------------------------
+                        // Identify record type
+                        // -----------------------------------------
 
                         rowObject.recordType =
                             "existing";
 
 
-                        payload.push(rowObject);
+                        // Add to payload
+                        payload.push(
+                            rowObject
+                        );
 
                     }
                 );
 
 
-                // =================================
+                // =================================================
                 // NEW ROWS
-                // =================================
+                // =================================================
 
                 const newRows =
                     document.querySelectorAll(
@@ -790,14 +1041,23 @@
                 newRows.forEach(
                     function (newRow) {
 
-                        const rowObject = {};
+                        const rowObject =
+                            {};
 
-                        let hasValue = false;
+
+                        let hasValue =
+                            false;
 
 
+                        // -----------------------------------------
                         // Tableau columns
+                        // -----------------------------------------
+
                         currentDataTable.columns.forEach(
-                            function (column, columnIndex) {
+                            function (
+                                column,
+                                columnIndex
+                            ) {
 
                                 const input =
                                     newRow.querySelector(
@@ -806,26 +1066,35 @@
 
 
                                 const value =
-                                    input.value.trim();
+                                    input
+                                        ? input.value.trim()
+                                        : "";
 
 
                                 rowObject[
                                     column.fieldName
-                                ] = value;
+                                ] =
+                                    value;
 
 
                                 if (value !== "") {
-                                    hasValue = true;
+
+                                    hasValue =
+                                        true;
+
                                 }
 
                             }
                         );
 
 
+                        // -----------------------------------------
                         // User Input
+                        // -----------------------------------------
+
                         const userInput =
                             newRow.querySelector(
-                                ".new-row-input:last-of-type"
+                                ".new-row-user-input"
                             );
 
 
@@ -838,30 +1107,42 @@
                         if (
                             rowObject.UserInput !== ""
                         ) {
-                            hasValue = true;
+
+                            hasValue =
+                                true;
+
                         }
 
 
-                        // Ignore completely empty
-                        // new rows
+                        /*
+                         * Completely empty new rows
+                         * are ignored.
+                         */
+
                         if (!hasValue) {
+
                             return;
+
                         }
 
 
+                        // Identify as new record
                         rowObject.recordType =
                             "new";
 
 
-                        payload.push(rowObject);
+                        // Add to payload
+                        payload.push(
+                            rowObject
+                        );
 
                     }
                 );
 
 
-                // =================================
-                // Display combined payload
-                // =================================
+                // =================================================
+                // Display payload
+                // =================================================
 
                 payloadOutput.value =
                     JSON.stringify(
@@ -877,7 +1158,7 @@
 
                 status.textContent =
                     payload.length +
-                    " record(s) ready for submission.";
+                    " record(s) ready";
 
             }
         );
