@@ -16,7 +16,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1100px;
             margin: auto;
         }
 
@@ -89,13 +89,34 @@
         }
 
         td {
-            padding: 9px 10px;
+            padding: 8px 10px;
             border-bottom: 1px solid #e5e8ed;
             white-space: nowrap;
         }
 
         tr:last-child td {
             border-bottom: none;
+        }
+
+        .input-cell {
+            min-width: 140px;
+        }
+
+        .user-input {
+            width: 120px;
+            height: 32px;
+            box-sizing: border-box;
+
+            border: 1px solid #ccd2dc;
+            border-radius: 5px;
+
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        .user-input:focus {
+            outline: none;
+            border-color: #2c6bed;
         }
 
         .no-data {
@@ -119,7 +140,7 @@
     </h1>
 
     <div class="subtitle">
-        Select a worksheet to view its data dynamically.
+        Select a worksheet and enter values for the required rows.
     </div>
 
 
@@ -160,15 +181,14 @@
 <script>
 
     /*
-     * Global variable to store
-     * the Tableau worksheets.
+     * Store the Tableau worksheets.
      */
 
     let worksheets = [];
 
 
     /*
-     * Get HTML elements
+     * Get HTML elements.
      */
 
     const worksheetSelect =
@@ -182,7 +202,7 @@
 
 
     /*
-     * Initialize Tableau Dialog
+     * Initialize Tableau Dialog.
      */
 
     tableau.extensions.initializeDialogAsync()
@@ -213,7 +233,7 @@
 
 
             /*
-             * Check if worksheets exist
+             * Check whether worksheets exist.
              */
 
             if (!worksheets || worksheets.length === 0) {
@@ -230,7 +250,7 @@
 
 
             /*
-             * Populate worksheet dropdown
+             * Populate worksheet dropdown.
              */
 
             worksheetSelect.innerHTML =
@@ -276,7 +296,7 @@
 
     /*
      * When the user selects
-     * a worksheet
+     * a worksheet.
      */
 
     worksheetSelect.addEventListener(
@@ -288,7 +308,7 @@
 
 
             /*
-             * No worksheet selected
+             * No worksheet selected.
              */
 
             if (selectedIndex === "") {
@@ -324,10 +344,7 @@
 
 
                 /*
-                 * Get summary data reader.
-                 *
-                 * This is the current
-                 * Tableau API approach.
+                 * Read worksheet summary data.
                  */
 
                 const dataTableReader =
@@ -336,7 +353,7 @@
 
 
                 /*
-                 * Get all pages of data.
+                 * Retrieve all pages.
                  */
 
                 const dataTable =
@@ -345,8 +362,7 @@
 
 
                 /*
-                 * Release the reader
-                 * after retrieving the data.
+                 * Release the reader.
                  */
 
                 await dataTableReader.releaseAsync();
@@ -359,7 +375,8 @@
 
 
                 /*
-                 * Display the data.
+                 * Display the Tableau data
+                 * plus the editable column.
                  */
 
                 displayTable(dataTable);
@@ -370,7 +387,6 @@
                     dataTable.data.length +
                     " rows from " +
                     worksheet.name;
-
 
             }
 
@@ -398,20 +414,20 @@
 
     /*
      * Display Tableau DataTable
-     * as an HTML table.
+     * as an editable HTML table.
      */
 
     function displayTable(dataTable) {
 
         /*
-         * Clear previous table
+         * Clear previous table.
          */
 
         tableContainer.innerHTML = "";
 
 
         /*
-         * Check for data
+         * Check for columns.
          */
 
         if (
@@ -430,6 +446,10 @@
         }
 
 
+        /*
+         * Check for rows.
+         */
+
         if (
             !dataTable.data ||
             dataTable.data.length === 0
@@ -446,7 +466,7 @@
 
 
         /*
-         * Create HTML table
+         * Create HTML table.
          */
 
         const table =
@@ -454,7 +474,7 @@
 
 
         /*
-         * Create table header
+         * Create table header.
          */
 
         const thead =
@@ -463,6 +483,10 @@
         const headerRow =
             document.createElement("tr");
 
+
+        /*
+         * Add all Tableau columns dynamically.
+         */
 
         dataTable.columns.forEach(
             (column) => {
@@ -479,25 +503,53 @@
         );
 
 
-        thead.appendChild(headerRow);
+        /*
+         * Add our extension column.
+         */
 
-        table.appendChild(thead);
+        const inputHeader =
+            document.createElement("th");
+
+        inputHeader.textContent =
+            "User Input";
+
+        headerRow.appendChild(
+            inputHeader
+        );
+
+
+        thead.appendChild(
+            headerRow
+        );
+
+        table.appendChild(
+            thead
+        );
 
 
         /*
-         * Create table body
+         * Create table body.
          */
 
         const tbody =
             document.createElement("tbody");
 
 
+        /*
+         * Create one row for every
+         * Tableau data row.
+         */
+
         dataTable.data.forEach(
-            (row) => {
+            (row, rowIndex) => {
 
                 const tr =
                     document.createElement("tr");
 
+
+                /*
+                 * Add Tableau values.
+                 */
 
                 row.forEach(
                     (cell) => {
@@ -505,11 +557,6 @@
                         const td =
                             document.createElement("td");
 
-
-                        /*
-                         * Tableau DataValue contains
-                         * a formattedValue property.
-                         */
 
                         if (
                             cell &&
@@ -544,15 +591,64 @@
                 );
 
 
-                tbody.appendChild(tr);
+                /*
+                 * Add editable input.
+                 */
+
+                const inputCell =
+                    document.createElement("td");
+
+                inputCell.className =
+                    "input-cell";
+
+
+                const input =
+                    document.createElement("input");
+
+                input.type = "text";
+
+                input.className =
+                    "user-input";
+
+                input.placeholder =
+                    "Enter value";
+
+
+                /*
+                 * Store the Tableau row index
+                 * on the input element.
+                 */
+
+                input.dataset.rowIndex =
+                    rowIndex;
+
+
+                inputCell.appendChild(
+                    input
+                );
+
+
+                tr.appendChild(
+                    inputCell
+                );
+
+
+                tbody.appendChild(
+                    tr
+                );
 
             }
         );
 
 
-        table.appendChild(tbody);
+        table.appendChild(
+            tbody
+        );
 
-        tableContainer.appendChild(table);
+
+        tableContainer.appendChild(
+            table
+        );
 
     }
 
