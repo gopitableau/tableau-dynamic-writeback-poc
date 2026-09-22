@@ -64,13 +64,7 @@
         }
 
         .user-input,
-        .new-row-input {
-            width: 100px;
-            padding: 4px;
-            box-sizing: border-box;
-            font-size: 11px;
-        }
-
+        .new-row-input,
         .new-row-user-input {
             width: 100px;
             padding: 4px;
@@ -120,22 +114,6 @@
 
         button:hover {
             opacity: 0.9;
-        }
-
-        .payload-container {
-            margin-top: 15px;
-        }
-
-        .payload-container h3 {
-            font-size: 13px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 200px;
-            box-sizing: border-box;
-            font-family: monospace;
-            font-size: 10px;
         }
 
     </style>
@@ -197,35 +175,23 @@
     </div>
 
 
-    <div id="payloadContainer"
-         class="payload-container"
-         style="display:none;">
-
-        <h3>Generated Payload</h3>
-
-        <textarea
-            id="payloadOutput"
-            readonly>
-        </textarea>
-
-    </div>
-
-
     <script src="tableau.extensions.1.latest.js"></script>
 
 
     <script>
 
-        /*
-         * Google Apps Script Web App
-         *
-         * This is the /exec URL of the
-         * Tableau Dynamic Writeback POC.
-         */
+
+        // --------------------------------------------------
+        // Google Apps Script Web App URL
+        // --------------------------------------------------
 
         const WRITEBACK_URL =
             "https://script.google.com/macros/s/AKfycbwNup0y3TImWTO6RR5gTaFBiziHHbwahKIvNSPBhPEUhlRiDBIgzEW4KYTePFyNBNs84A/exec";
 
+
+        // --------------------------------------------------
+        // Global variables
+        // --------------------------------------------------
 
         let worksheets = [];
 
@@ -235,6 +201,10 @@
 
         let newRowCounter = 0;
 
+
+        // --------------------------------------------------
+        // HTML elements
+        // --------------------------------------------------
 
         const worksheetSelect =
             document.getElementById(
@@ -269,18 +239,6 @@
         const submitButton =
             document.getElementById(
                 "submitButton"
-            );
-
-
-        const payloadContainer =
-            document.getElementById(
-                "payloadContainer"
-            );
-
-
-        const payloadOutput =
-            document.getElementById(
-                "payloadOutput"
             );
 
 
@@ -396,9 +354,6 @@
                     actions.style.display =
                         "none";
 
-                    payloadContainer.style.display =
-                        "none";
-
                     currentDataTable =
                         null;
 
@@ -457,10 +412,6 @@
                         "flex";
 
 
-                    payloadContainer.style.display =
-                        "none";
-
-
                     status.textContent =
                         "Loaded";
 
@@ -509,6 +460,8 @@
                 );
 
 
+            // Tableau columns
+
             dataTable.columns.forEach(
                 function (column) {
 
@@ -530,6 +483,8 @@
             );
 
 
+            // User Input column
+
             const userInputHeader =
                 document.createElement(
                     "th"
@@ -544,6 +499,9 @@
                 userInputHeader
             );
 
+
+            // Empty column for Remove button
+            // Used only by new rows
 
             const actionHeader =
                 document.createElement(
@@ -575,6 +533,10 @@
                     "tbody"
                 );
 
+
+            // --------------------------------------------------
+            // Existing Tableau rows
+            // --------------------------------------------------
 
             dataTable.data.forEach(
                 function (row, rowIndex) {
@@ -617,6 +579,8 @@
                     );
 
 
+                    // User Input
+
                     const userInputTd =
                         document.createElement(
                             "td"
@@ -654,6 +618,9 @@
                         userInputTd
                     );
 
+
+                    // Empty action cell
+                    // Existing rows do not have a button
 
                     const actionTd =
                         document.createElement(
@@ -735,6 +702,8 @@
                 newRowCounter++;
 
 
+                // Tableau columns
+
                 currentDataTable.columns.forEach(
                     function (
                         column,
@@ -782,6 +751,8 @@
                 );
 
 
+                // User Input
+
                 const userInputTd =
                     document.createElement(
                         "td"
@@ -815,6 +786,8 @@
                     userInputTd
                 );
 
+
+                // Remove button
 
                 const actionTd =
                     document.createElement(
@@ -870,7 +843,7 @@
 
 
         // --------------------------------------------------
-        // Build payload
+        // Build payload internally
         // --------------------------------------------------
 
         function buildPayload() {
@@ -878,9 +851,9 @@
             const records = [];
 
 
-            // ----------------------------------------------
+            // --------------------------------------------------
             // Existing Tableau rows
-            // ----------------------------------------------
+            // --------------------------------------------------
 
             const existingInputs =
                 document.querySelectorAll(
@@ -894,6 +867,8 @@
                     const userValue =
                         input.value.trim();
 
+
+                    // Ignore unchanged/empty rows
 
                     if (userValue === "") {
 
@@ -956,9 +931,9 @@
 
 
 
-            // ----------------------------------------------
+            // --------------------------------------------------
             // New rows
-            // ----------------------------------------------
+            // --------------------------------------------------
 
             const newRows =
                 document.querySelectorAll(
@@ -1030,6 +1005,8 @@
                     }
 
 
+                    // Ignore completely empty new rows
+
                     if (!hasValue) {
 
                         return;
@@ -1073,6 +1050,8 @@
                 }
 
 
+                // Build records internally
+
                 const records =
                     buildPayload();
 
@@ -1087,6 +1066,8 @@
                 }
 
 
+                // Build final request
+
                 const requestPayload = {
 
                     worksheet:
@@ -1098,20 +1079,6 @@
                 };
 
 
-                // Show the payload before sending
-
-                payloadOutput.value =
-                    JSON.stringify(
-                        requestPayload,
-                        null,
-                        2
-                    );
-
-
-                payloadContainer.style.display =
-                    "block";
-
-
                 status.textContent =
                     "Submitting...";
 
@@ -1121,6 +1088,8 @@
 
 
                 try {
+
+                    // Send to Google Apps Script
 
                     const response =
                         await fetch(
@@ -1134,12 +1103,12 @@
 
                                     /*
                                      * IMPORTANT:
-                                     * Use text/plain instead
-                                     * of application/json.
                                      *
-                                     * This avoids the CORS
-                                     * preflight problem found
-                                     * in the previous POC.
+                                     * Do not change this
+                                     * to application/json.
+                                     *
+                                     * text/plain avoids the
+                                     * CORS preflight issue.
                                      */
 
                                     "Content-Type":
@@ -1188,6 +1157,10 @@
                     }
 
 
+                    // --------------------------------------------------
+                    // Successful submission
+                    // --------------------------------------------------
+
                     if (
                         result &&
                         result.status === "success"
@@ -1198,6 +1171,11 @@
                             " record(s) submitted successfully.";
 
                     }
+
+
+                    // --------------------------------------------------
+                    // Apps Script returned an error
+                    // --------------------------------------------------
 
                     else if (
                         result &&
@@ -1210,6 +1188,11 @@
 
                     }
 
+
+                    // --------------------------------------------------
+                    // HTTP success but unexpected response
+                    // --------------------------------------------------
+
                     else if (
                         response.ok
                     ) {
@@ -1219,6 +1202,11 @@
                             " record(s) submitted.";
 
                     }
+
+
+                    // --------------------------------------------------
+                    // HTTP error
+                    // --------------------------------------------------
 
                     else {
 
@@ -1251,6 +1239,7 @@
 
             }
         );
+
 
     </script>
 
