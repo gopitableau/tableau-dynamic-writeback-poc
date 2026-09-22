@@ -116,6 +116,31 @@
             opacity: 0.9;
         }
 
+        /* Submit result message */
+
+        .submit-status {
+            display: none;
+            margin-top: 8px;
+            padding: 6px 8px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        .submit-success {
+            display: block;
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+
+        .submit-error {
+            display: block;
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+
     </style>
 
 </head>
@@ -172,6 +197,14 @@
 
         </button>
 
+    </div>
+
+
+    <!-- Submit result -->
+
+    <div
+        id="submitStatus"
+        class="submit-status">
     </div>
 
 
@@ -239,6 +272,12 @@
         const submitButton =
             document.getElementById(
                 "submitButton"
+            );
+
+
+        const submitStatus =
+            document.getElementById(
+                "submitStatus"
             );
 
 
@@ -344,6 +383,15 @@
 
                 const selectedIndex =
                     worksheetSelect.value;
+
+
+                // Hide previous submit message
+
+                submitStatus.style.display =
+                    "none";
+
+                submitStatus.className =
+                    "submit-status";
 
 
                 if (selectedIndex === "") {
@@ -500,8 +548,7 @@
             );
 
 
-            // Empty column for Remove button
-            // Used only by new rows
+            // Empty action column
 
             const actionHeader =
                 document.createElement(
@@ -620,7 +667,6 @@
 
 
                     // Empty action cell
-                    // Existing rows do not have a button
 
                     const actionTd =
                         document.createElement(
@@ -834,6 +880,16 @@
                 );
 
 
+                // Hide old success message
+                // when adding another row
+
+                submitStatus.style.display =
+                    "none";
+
+                submitStatus.className =
+                    "submit-status";
+
+
                 status.textContent =
                     "New row added";
 
@@ -868,7 +924,7 @@
                         input.value.trim();
 
 
-                    // Ignore unchanged/empty rows
+                    // Ignore empty inputs
 
                     if (userValue === "") {
 
@@ -1050,23 +1106,36 @@
                 }
 
 
-                // Build records internally
-
                 const records =
                     buildPayload();
 
 
                 if (records.length === 0) {
 
-                    status.textContent =
+                    submitStatus.textContent =
                         "No records to submit.";
+
+                    submitStatus.className =
+                        "submit-status submit-error";
+
+                    submitStatus.style.display =
+                        "block";
 
                     return;
 
                 }
 
 
-                // Build final request
+                // Hide previous message
+
+                submitStatus.style.display =
+                    "none";
+
+                submitStatus.className =
+                    "submit-status";
+
+
+                // Build request internally
 
                 const requestPayload = {
 
@@ -1089,7 +1158,7 @@
 
                 try {
 
-                    // Send to Google Apps Script
+                    // Send data to Google Apps Script
 
                     const response =
                         await fetch(
@@ -1102,13 +1171,9 @@
                                 headers: {
 
                                     /*
-                                     * IMPORTANT:
-                                     *
-                                     * Do not change this
-                                     * to application/json.
-                                     *
-                                     * text/plain avoids the
-                                     * CORS preflight issue.
+                                     * Keep text/plain.
+                                     * Do not change to
+                                     * application/json.
                                      */
 
                                     "Content-Type":
@@ -1158,7 +1223,7 @@
 
 
                     // --------------------------------------------------
-                    // Successful submission
+                    // SUCCESS
                     // --------------------------------------------------
 
                     if (
@@ -1167,14 +1232,22 @@
                     ) {
 
                         status.textContent =
-                            records.length +
-                            " record(s) submitted successfully.";
+                            "";
+
+                        submitStatus.textContent =
+                            "Submitted successfully.";
+
+                        submitStatus.className =
+                            "submit-status submit-success";
+
+                        submitStatus.style.display =
+                            "block";
 
                     }
 
 
                     // --------------------------------------------------
-                    // Apps Script returned an error
+                    // APPS SCRIPT ERROR
                     // --------------------------------------------------
 
                     else if (
@@ -1183,14 +1256,23 @@
                     ) {
 
                         status.textContent =
+                            "";
+
+                        submitStatus.textContent =
                             "Submission failed: " +
                             result.message;
+
+                        submitStatus.className =
+                            "submit-status submit-error";
+
+                        submitStatus.style.display =
+                            "block";
 
                     }
 
 
                     // --------------------------------------------------
-                    // HTTP success but unexpected response
+                    // HTTP SUCCESS BUT UNKNOWN RESPONSE
                     // --------------------------------------------------
 
                     else if (
@@ -1198,20 +1280,37 @@
                     ) {
 
                         status.textContent =
-                            records.length +
-                            " record(s) submitted.";
+                            "";
+
+                        submitStatus.textContent =
+                            "Submitted successfully.";
+
+                        submitStatus.className =
+                            "submit-status submit-success";
+
+                        submitStatus.style.display =
+                            "block";
 
                     }
 
 
                     // --------------------------------------------------
-                    // HTTP error
+                    // HTTP ERROR
                     // --------------------------------------------------
 
                     else {
 
                         status.textContent =
+                            "";
+
+                        submitStatus.textContent =
                             "Submission failed.";
+
+                        submitStatus.className =
+                            "submit-status submit-error";
+
+                        submitStatus.style.display =
+                            "block";
 
                     }
 
@@ -1226,7 +1325,16 @@
 
 
                     status.textContent =
+                        "";
+
+                    submitStatus.textContent =
                         "Unable to submit records.";
+
+                    submitStatus.className =
+                        "submit-status submit-error";
+
+                    submitStatus.style.display =
+                        "block";
 
                 }
 
