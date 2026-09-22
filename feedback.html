@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <meta charset="UTF-8">
+
     <title>Dynamic Tableau Writeback</title>
 
     <style>
+
         body {
             font-family: Arial, sans-serif;
             margin: 12px;
@@ -67,6 +71,13 @@
             font-size: 11px;
         }
 
+        .new-row-user-input {
+            width: 100px;
+            padding: 4px;
+            box-sizing: border-box;
+            font-size: 11px;
+        }
+
         .new-row td {
             background-color: #fffdf2;
         }
@@ -83,6 +94,11 @@
             border-radius: 3px;
             cursor: pointer;
             font-size: 11px;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .add-button {
@@ -121,12 +137,16 @@
             font-family: monospace;
             font-size: 10px;
         }
+
     </style>
+
 </head>
+
 
 <body>
 
     <h2>Tableau Worksheet Data</h2>
+
 
     <label for="worksheetSelect">
         <strong>Select Worksheet:</strong>
@@ -135,24 +155,47 @@
     <br>
 
     <select id="worksheetSelect">
-        <option value="">-- Select Worksheet --</option>
+
+        <option value="">
+            -- Select Worksheet --
+        </option>
+
     </select>
+
 
     <div id="status" class="status"></div>
 
+
     <div class="table-wrapper">
+
         <div id="tableContainer"></div>
+
     </div>
 
-    <div id="actions" class="actions" style="display:none;">
-        <button id="addRowButton" class="add-button">
+
+    <div id="actions"
+         class="actions"
+         style="display:none;">
+
+        <button
+            id="addRowButton"
+            class="add-button">
+
             + Add Row
+
         </button>
 
-        <button id="submitButton" class="submit-button">
+
+        <button
+            id="submitButton"
+            class="submit-button">
+
             Submit All
+
         </button>
+
     </div>
+
 
     <div id="payloadContainer"
          class="payload-container"
@@ -160,49 +203,98 @@
 
         <h3>Generated Payload</h3>
 
-        <textarea id="payloadOutput" readonly></textarea>
+        <textarea
+            id="payloadOutput"
+            readonly>
+        </textarea>
 
     </div>
 
+
     <script src="tableau.extensions.1.latest.js"></script>
+
 
     <script>
 
+        /*
+         * Google Apps Script Web App
+         *
+         * This is the /exec URL of the
+         * Tableau Dynamic Writeback POC.
+         */
+
+        const WRITEBACK_URL =
+            "https://script.google.com/macros/s/AKfycbwNup0y3TImWTO6RR5gTaFBiziHHbwahKIvNSPBhPEUhlRiDBIgzEW4KYTePFyNBNs84A/exec";
+
+
         let worksheets = [];
+
         let currentDataTable = null;
+
+        let currentWorksheetName = "";
+
         let newRowCounter = 0;
 
+
         const worksheetSelect =
-            document.getElementById("worksheetSelect");
+            document.getElementById(
+                "worksheetSelect"
+            );
+
 
         const status =
-            document.getElementById("status");
+            document.getElementById(
+                "status"
+            );
+
 
         const tableContainer =
-            document.getElementById("tableContainer");
+            document.getElementById(
+                "tableContainer"
+            );
+
 
         const actions =
-            document.getElementById("actions");
+            document.getElementById(
+                "actions"
+            );
+
 
         const addRowButton =
-            document.getElementById("addRowButton");
+            document.getElementById(
+                "addRowButton"
+            );
+
 
         const submitButton =
-            document.getElementById("submitButton");
+            document.getElementById(
+                "submitButton"
+            );
+
 
         const payloadContainer =
-            document.getElementById("payloadContainer");
+            document.getElementById(
+                "payloadContainer"
+            );
+
 
         const payloadOutput =
-            document.getElementById("payloadOutput");
+            document.getElementById(
+                "payloadOutput"
+            );
 
 
+
+        // --------------------------------------------------
         // Initialize Tableau Extension
+        // --------------------------------------------------
+
         tableau.extensions.initializeDialogAsync()
 
             .then(function () {
 
-                status.textContent = "Ready";
+                status.textContent =
+                    "Ready";
 
                 loadWorksheets();
 
@@ -218,35 +310,56 @@
             });
 
 
+
+        // --------------------------------------------------
         // Load worksheets from current dashboard
+        // --------------------------------------------------
+
         async function loadWorksheets() {
 
             try {
 
                 const dashboard =
-                    tableau.extensions.dashboardContent.dashboard;
+                    tableau.extensions
+                        .dashboardContent
+                        .dashboard;
+
 
                 worksheets =
                     dashboard.worksheets;
 
+
                 worksheetSelect.innerHTML =
                     '<option value="">-- Select Worksheet --</option>';
 
-                worksheets.forEach(function (worksheet, index) {
 
-                    const option =
-                        document.createElement("option");
+                worksheets.forEach(
+                    function (worksheet, index) {
 
-                    option.value = index;
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
 
-                    option.textContent =
-                        worksheet.name;
 
-                    worksheetSelect.appendChild(option);
+                        option.value =
+                            index;
 
-                });
 
-                status.textContent = "Ready";
+                        option.textContent =
+                            worksheet.name;
+
+
+                        worksheetSelect.appendChild(
+                            option
+                        );
+
+                    }
+                );
+
+
+                status.textContent =
+                    "Ready";
 
             }
 
@@ -262,7 +375,11 @@
         }
 
 
+
+        // --------------------------------------------------
         // Worksheet selection
+        // --------------------------------------------------
+
         worksheetSelect.addEventListener(
             "change",
             async function () {
@@ -270,51 +387,79 @@
                 const selectedIndex =
                     worksheetSelect.value;
 
+
                 if (selectedIndex === "") {
 
-                    tableContainer.innerHTML = "";
+                    tableContainer.innerHTML =
+                        "";
 
-                    actions.style.display = "none";
+                    actions.style.display =
+                        "none";
 
                     payloadContainer.style.display =
                         "none";
 
-                    currentDataTable = null;
+                    currentDataTable =
+                        null;
+
+                    currentWorksheetName =
+                        "";
 
                     return;
 
                 }
+
 
                 try {
 
                     status.textContent =
                         "Loading...";
 
-                    newRowCounter = 0;
+
+                    newRowCounter =
+                        0;
+
 
                     const worksheet =
-                        worksheets[selectedIndex];
+                        worksheets[
+                            selectedIndex
+                        ];
+
+
+                    currentWorksheetName =
+                        worksheet.name;
+
 
                     const dataTableReader =
                         await worksheet
                             .getSummaryDataReaderAsync();
 
+
                     const dataTable =
                         await dataTableReader
                             .getAllPagesAsync();
 
+
                     await dataTableReader
                         .releaseAsync();
+
 
                     currentDataTable =
                         dataTable;
 
-                    displayTable(dataTable);
 
-                    actions.style.display = "flex";
+                    displayTable(
+                        dataTable
+                    );
+
+
+                    actions.style.display =
+                        "flex";
+
 
                     payloadContainer.style.display =
                         "none";
+
 
                     status.textContent =
                         "Loaded";
@@ -331,124 +476,221 @@
                 }
 
             }
+
         );
 
 
+
+        // --------------------------------------------------
         // Display Tableau data
+        // --------------------------------------------------
+
         function displayTable(dataTable) {
 
-            tableContainer.innerHTML = "";
+            tableContainer.innerHTML =
+                "";
+
 
             const table =
-                document.createElement("table");
+                document.createElement(
+                    "table"
+                );
+
 
             const thead =
-                document.createElement("thead");
+                document.createElement(
+                    "thead"
+                );
+
 
             const headerRow =
-                document.createElement("tr");
+                document.createElement(
+                    "tr"
+                );
 
 
             dataTable.columns.forEach(
                 function (column) {
 
                     const th =
-                        document.createElement("th");
+                        document.createElement(
+                            "th"
+                        );
+
 
                     th.textContent =
                         column.fieldName;
 
-                    headerRow.appendChild(th);
+
+                    headerRow.appendChild(
+                        th
+                    );
 
                 }
             );
 
 
             const userInputHeader =
-                document.createElement("th");
+                document.createElement(
+                    "th"
+                );
+
 
             userInputHeader.textContent =
                 "User Input";
+
 
             headerRow.appendChild(
                 userInputHeader
             );
 
-            thead.appendChild(headerRow);
 
-            table.appendChild(thead);
+            const actionHeader =
+                document.createElement(
+                    "th"
+                );
+
+
+            actionHeader.textContent =
+                "";
+
+
+            headerRow.appendChild(
+                actionHeader
+            );
+
+
+            thead.appendChild(
+                headerRow
+            );
+
+
+            table.appendChild(
+                thead
+            );
 
 
             const tbody =
-                document.createElement("tbody");
+                document.createElement(
+                    "tbody"
+                );
 
 
             dataTable.data.forEach(
                 function (row, rowIndex) {
 
                     const tr =
-                        document.createElement("tr");
+                        document.createElement(
+                            "tr"
+                        );
 
 
                     dataTable.columns.forEach(
-                        function (column, columnIndex) {
+                        function (
+                            column,
+                            columnIndex
+                        ) {
 
                             const td =
-                                document.createElement("td");
+                                document.createElement(
+                                    "td"
+                                );
+
 
                             const cell =
-                                row[columnIndex];
+                                row[
+                                    columnIndex
+                                ];
+
 
                             td.textContent =
                                 cell.formattedValue ??
                                 cell.value ??
                                 "";
 
-                            tr.appendChild(td);
+
+                            tr.appendChild(
+                                td
+                            );
 
                         }
                     );
 
 
                     const userInputTd =
-                        document.createElement("td");
+                        document.createElement(
+                            "td"
+                        );
+
 
                     const userInput =
-                        document.createElement("input");
+                        document.createElement(
+                            "input"
+                        );
 
-                    userInput.type = "text";
+
+                    userInput.type =
+                        "text";
+
 
                     userInput.className =
                         "user-input";
 
+
                     userInput.placeholder =
                         "Enter value";
 
+
                     userInput.dataset.rowIndex =
                         rowIndex;
+
 
                     userInputTd.appendChild(
                         userInput
                     );
 
+
                     tr.appendChild(
                         userInputTd
                     );
 
-                    tbody.appendChild(tr);
+
+                    const actionTd =
+                        document.createElement(
+                            "td"
+                        );
+
+
+                    tr.appendChild(
+                        actionTd
+                    );
+
+
+                    tbody.appendChild(
+                        tr
+                    );
 
                 }
             );
 
 
-            table.appendChild(tbody);
+            table.appendChild(
+                tbody
+            );
 
-            tableContainer.appendChild(table);
+
+            tableContainer.appendChild(
+                table
+            );
 
         }
 
 
+
+        // --------------------------------------------------
         // Add new row
+        // --------------------------------------------------
+
         addRowButton.addEventListener(
             "click",
             function () {
@@ -464,67 +706,110 @@
 
 
                 const table =
-                    tableContainer.querySelector("table");
+                    tableContainer
+                        .querySelector(
+                            "table"
+                        );
+
 
                 const tbody =
-                    table.querySelector("tbody");
+                    table.querySelector(
+                        "tbody"
+                    );
+
 
                 const tr =
-                    document.createElement("tr");
+                    document.createElement(
+                        "tr"
+                    );
 
-                tr.className = "new-row";
+
+                tr.className =
+                    "new-row";
+
 
                 tr.dataset.newRowId =
                     newRowCounter;
+
 
                 newRowCounter++;
 
 
                 currentDataTable.columns.forEach(
-                    function (column, columnIndex) {
+                    function (
+                        column,
+                        columnIndex
+                    ) {
 
                         const td =
-                            document.createElement("td");
+                            document.createElement(
+                                "td"
+                            );
+
 
                         const input =
-                            document.createElement("input");
+                            document.createElement(
+                                "input"
+                            );
 
-                        input.type = "text";
+
+                        input.type =
+                            "text";
+
 
                         input.className =
                             "new-row-input";
 
+
                         input.placeholder =
                             column.fieldName;
+
 
                         input.dataset.columnIndex =
                             columnIndex;
 
-                        td.appendChild(input);
 
-                        tr.appendChild(td);
+                        td.appendChild(
+                            input
+                        );
+
+
+                        tr.appendChild(
+                            td
+                        );
 
                     }
                 );
 
 
                 const userInputTd =
-                    document.createElement("td");
+                    document.createElement(
+                        "td"
+                    );
+
 
                 const userInput =
-                    document.createElement("input");
+                    document.createElement(
+                        "input"
+                    );
 
-                userInput.type = "text";
+
+                userInput.type =
+                    "text";
+
 
                 userInput.className =
                     "new-row-user-input";
 
+
                 userInput.placeholder =
                     "Enter value";
+
 
                 userInputTd.appendChild(
                     userInput
                 );
+
 
                 tr.appendChild(
                     userInputTd
@@ -532,13 +817,20 @@
 
 
                 const actionTd =
-                    document.createElement("td");
+                    document.createElement(
+                        "td"
+                    );
+
 
                 const removeButton =
-                    document.createElement("button");
+                    document.createElement(
+                        "button"
+                    );
+
 
                 removeButton.textContent =
                     "Remove";
+
 
                 removeButton.className =
                     "remove-button";
@@ -558,9 +850,16 @@
                     removeButton
                 );
 
-                tr.appendChild(actionTd);
 
-                tbody.appendChild(tr);
+                tr.appendChild(
+                    actionTd
+                );
+
+
+                tbody.appendChild(
+                    tr
+                );
+
 
                 status.textContent =
                     "New row added";
@@ -569,10 +868,200 @@
         );
 
 
-        // Submit all
+
+        // --------------------------------------------------
+        // Build payload
+        // --------------------------------------------------
+
+        function buildPayload() {
+
+            const records = [];
+
+
+            // ----------------------------------------------
+            // Existing Tableau rows
+            // ----------------------------------------------
+
+            const existingInputs =
+                document.querySelectorAll(
+                    ".user-input"
+                );
+
+
+            existingInputs.forEach(
+                function (input) {
+
+                    const userValue =
+                        input.value.trim();
+
+
+                    if (userValue === "") {
+
+                        return;
+
+                    }
+
+
+                    const rowIndex =
+                        Number(
+                            input.dataset.rowIndex
+                        );
+
+
+                    const tableauRow =
+                        currentDataTable
+                            .data[rowIndex];
+
+
+                    const rowObject = {};
+
+
+                    currentDataTable.columns.forEach(
+                        function (
+                            column,
+                            columnIndex
+                        ) {
+
+                            const cell =
+                                tableauRow[
+                                    columnIndex
+                                ];
+
+
+                            rowObject[
+                                column.fieldName
+                            ] =
+                                cell.formattedValue ??
+                                cell.value ??
+                                "";
+
+                        }
+                    );
+
+
+                    rowObject.UserInput =
+                        userValue;
+
+
+                    rowObject.recordType =
+                        "existing";
+
+
+                    records.push(
+                        rowObject
+                    );
+
+                }
+            );
+
+
+
+            // ----------------------------------------------
+            // New rows
+            // ----------------------------------------------
+
+            const newRows =
+                document.querySelectorAll(
+                    ".new-row"
+                );
+
+
+            newRows.forEach(
+                function (newRow) {
+
+                    const rowObject = {};
+
+                    let hasValue = false;
+
+
+                    currentDataTable.columns.forEach(
+                        function (
+                            column,
+                            columnIndex
+                        ) {
+
+                            const input =
+                                newRow.querySelector(
+                                    `input[data-column-index="${columnIndex}"]`
+                                );
+
+
+                            const value =
+                                input
+                                    ? input.value.trim()
+                                    : "";
+
+
+                            rowObject[
+                                column.fieldName
+                            ] = value;
+
+
+                            if (value !== "") {
+
+                                hasValue =
+                                    true;
+
+                            }
+
+                        }
+                    );
+
+
+                    const userInput =
+                        newRow.querySelector(
+                            ".new-row-user-input"
+                        );
+
+
+                    rowObject.UserInput =
+                        userInput
+                            ? userInput.value.trim()
+                            : "";
+
+
+                    if (
+                        rowObject.UserInput !== ""
+                    ) {
+
+                        hasValue =
+                            true;
+
+                    }
+
+
+                    if (!hasValue) {
+
+                        return;
+
+                    }
+
+
+                    rowObject.recordType =
+                        "new";
+
+
+                    records.push(
+                        rowObject
+                    );
+
+                }
+            );
+
+
+            return records;
+
+        }
+
+
+
+        // --------------------------------------------------
+        // Submit All
+        // --------------------------------------------------
+
         submitButton.addEventListener(
             "click",
-            function () {
+            async function () {
 
                 if (!currentDataTable) {
 
@@ -584,164 +1073,181 @@
                 }
 
 
-                const payload = [];
+                const records =
+                    buildPayload();
 
 
-                // Existing rows
-                const existingInputs =
-                    document.querySelectorAll(
-                        ".user-input"
-                    );
+                if (records.length === 0) {
+
+                    status.textContent =
+                        "No records to submit.";
+
+                    return;
+
+                }
 
 
-                existingInputs.forEach(
-                    function (input) {
+                const requestPayload = {
 
-                        const userValue =
-                            input.value.trim();
+                    worksheet:
+                        currentWorksheetName,
 
-                        if (userValue === "")
-                            return;
+                    records:
+                        records
 
-
-                        const rowIndex =
-                            Number(
-                                input.dataset.rowIndex
-                            );
-
-                        const tableauRow =
-                            currentDataTable
-                                .data[rowIndex];
-
-                        const rowObject = {};
+                };
 
 
-                        currentDataTable.columns.forEach(
-                            function (
-                                column,
-                                columnIndex
-                            ) {
-
-                                const cell =
-                                    tableauRow[
-                                        columnIndex
-                                    ];
-
-                                rowObject[
-                                    column.fieldName
-                                ] =
-                                    cell.formattedValue ??
-                                    cell.value ??
-                                    "";
-
-                            }
-                        );
-
-
-                        rowObject.UserInput =
-                            userValue;
-
-                        rowObject.recordType =
-                            "existing";
-
-                        payload.push(
-                            rowObject
-                        );
-
-                    }
-                );
-
-
-                // New rows
-                const newRows =
-                    document.querySelectorAll(
-                        ".new-row"
-                    );
-
-
-                newRows.forEach(
-                    function (newRow) {
-
-                        const rowObject = {};
-
-                        let hasValue = false;
-
-
-                        currentDataTable.columns.forEach(
-                            function (
-                                column,
-                                columnIndex
-                            ) {
-
-                                const input =
-                                    newRow.querySelector(
-                                        `input[data-column-index="${columnIndex}"]`
-                                    );
-
-                                const value =
-                                    input
-                                        ? input.value.trim()
-                                        : "";
-
-                                rowObject[
-                                    column.fieldName
-                                ] = value;
-
-
-                                if (value !== "")
-                                    hasValue = true;
-
-                            }
-                        );
-
-
-                        const userInput =
-                            newRow.querySelector(
-                                ".new-row-user-input"
-                            );
-
-
-                        rowObject.UserInput =
-                            userInput
-                                ? userInput.value.trim()
-                                : "";
-
-
-                        if (
-                            rowObject.UserInput !== ""
-                        ) {
-                            hasValue = true;
-                        }
-
-
-                        if (!hasValue)
-                            return;
-
-
-                        rowObject.recordType =
-                            "new";
-
-                        payload.push(
-                            rowObject
-                        );
-
-                    }
-                );
-
+                // Show the payload before sending
 
                 payloadOutput.value =
                     JSON.stringify(
-                        payload,
+                        requestPayload,
                         null,
                         2
                     );
 
+
                 payloadContainer.style.display =
                     "block";
 
+
                 status.textContent =
-                    payload.length +
-                    " record(s) ready";
+                    "Submitting...";
+
+
+                submitButton.disabled =
+                    true;
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            WRITEBACK_URL,
+                            {
+
+                                method:
+                                    "POST",
+
+                                headers: {
+
+                                    /*
+                                     * IMPORTANT:
+                                     * Use text/plain instead
+                                     * of application/json.
+                                     *
+                                     * This avoids the CORS
+                                     * preflight problem found
+                                     * in the previous POC.
+                                     */
+
+                                    "Content-Type":
+                                        "text/plain"
+
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        requestPayload
+                                    )
+
+                            }
+                        );
+
+
+                    const responseText =
+                        await response.text();
+
+
+                    console.log(
+                        "Apps Script response:",
+                        responseText
+                    );
+
+
+                    let result = null;
+
+
+                    try {
+
+                        result =
+                            JSON.parse(
+                                responseText
+                            );
+
+                    }
+
+                    catch (parseError) {
+
+                        console.warn(
+                            "Response was not JSON:",
+                            responseText
+                        );
+
+                    }
+
+
+                    if (
+                        result &&
+                        result.status === "success"
+                    ) {
+
+                        status.textContent =
+                            records.length +
+                            " record(s) submitted successfully.";
+
+                    }
+
+                    else if (
+                        result &&
+                        result.status === "error"
+                    ) {
+
+                        status.textContent =
+                            "Submission failed: " +
+                            result.message;
+
+                    }
+
+                    else if (
+                        response.ok
+                    ) {
+
+                        status.textContent =
+                            records.length +
+                            " record(s) submitted.";
+
+                    }
+
+                    else {
+
+                        status.textContent =
+                            "Submission failed.";
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        "Writeback error:",
+                        error
+                    );
+
+
+                    status.textContent =
+                        "Unable to submit records.";
+
+                }
+
+                finally {
+
+                    submitButton.disabled =
+                        false;
+
+                }
 
             }
         );
@@ -749,4 +1255,5 @@
     </script>
 
 </body>
+
 </html>
