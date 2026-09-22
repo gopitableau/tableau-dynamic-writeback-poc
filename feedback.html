@@ -119,11 +119,69 @@
             border-color: #2c6bed;
         }
 
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+
+        .submit-button {
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+
+            background: #2c6bed;
+            color: white;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background: #1f56c7;
+        }
+
+        .submit-button:disabled {
+            background: #aab4c5;
+            cursor: not-allowed;
+        }
+
         .no-data {
             padding: 20px;
             text-align: center;
             color: #6f7b8f;
             font-size: 13px;
+        }
+
+        .payload-container {
+            margin-top: 20px;
+        }
+
+        .payload-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        #payloadOutput {
+            width: 100%;
+            min-height: 120px;
+
+            box-sizing: border-box;
+
+            border: 1px solid #ccd2dc;
+            border-radius: 5px;
+
+            padding: 10px;
+
+            font-family: Consolas, monospace;
+            font-size: 11px;
+
+            background: #f8f9fb;
+
+            resize: vertical;
         }
 
     </style>
@@ -169,6 +227,38 @@
     <div
         id="tableContainer"
         class="table-container">
+    </div>
+
+
+    <div
+        id="actions"
+        class="actions"
+        style="display: none;">
+
+        <button
+            id="submitButton"
+            class="submit-button">
+
+            Submit All
+
+        </button>
+
+    </div>
+
+
+    <div
+        id="payloadContainer"
+        class="payload-container"
+        style="display: none;">
+
+        <div class="payload-title">
+            Payload that will be sent to the API:
+        </div>
+
+        <textarea
+            id="payloadOutput"
+            readonly>
+        </textarea>
 
     </div>
 
@@ -181,10 +271,18 @@
 <script>
 
     /*
-     * Store the Tableau worksheets.
+     * Store Tableau worksheets.
      */
 
     let worksheets = [];
+
+
+    /*
+     * Store the currently loaded
+     * Tableau data.
+     */
+
+    let currentDataTable = null;
 
 
     /*
@@ -199,6 +297,18 @@
 
     const tableContainer =
         document.getElementById("tableContainer");
+
+    const actions =
+        document.getElementById("actions");
+
+    const submitButton =
+        document.getElementById("submitButton");
+
+    const payloadContainer =
+        document.getElementById("payloadContainer");
+
+    const payloadOutput =
+        document.getElementById("payloadOutput");
 
 
     /*
@@ -233,7 +343,7 @@
 
 
             /*
-             * Check whether worksheets exist.
+             * Check worksheets.
              */
 
             if (!worksheets || worksheets.length === 0) {
@@ -295,8 +405,7 @@
 
 
     /*
-     * When the user selects
-     * a worksheet.
+     * Worksheet selection.
      */
 
     worksheetSelect.addEventListener(
@@ -307,13 +416,15 @@
                 worksheetSelect.value;
 
 
-            /*
-             * No worksheet selected.
-             */
-
             if (selectedIndex === "") {
 
                 tableContainer.innerHTML = "";
+
+                actions.style.display =
+                    "none";
+
+                payloadContainer.style.display =
+                    "none";
 
                 status.innerText =
                     "Select a worksheet to load its data.";
@@ -332,7 +443,14 @@
             status.innerText =
                 "Loading worksheet data...";
 
+
             tableContainer.innerHTML = "";
+
+            actions.style.display =
+                "none";
+
+            payloadContainer.style.display =
+                "none";
 
 
             try {
@@ -344,7 +462,7 @@
 
 
                 /*
-                 * Read worksheet summary data.
+                 * Get summary data reader.
                  */
 
                 const dataTableReader =
@@ -353,7 +471,7 @@
 
 
                 /*
-                 * Retrieve all pages.
+                 * Get all pages.
                  */
 
                 const dataTable =
@@ -362,10 +480,18 @@
 
 
                 /*
-                 * Release the reader.
+                 * Release reader.
                  */
 
                 await dataTableReader.releaseAsync();
+
+
+                /*
+                 * Store current data.
+                 */
+
+                currentDataTable =
+                    dataTable;
 
 
                 console.log(
@@ -375,8 +501,7 @@
 
 
                 /*
-                 * Display the Tableau data
-                 * plus the editable column.
+                 * Display table.
                  */
 
                 displayTable(dataTable);
@@ -387,6 +512,14 @@
                     dataTable.data.length +
                     " rows from " +
                     worksheet.name;
+
+
+                /*
+                 * Show Submit button.
+                 */
+
+                actions.style.display =
+                    "flex";
 
             }
 
@@ -413,21 +546,17 @@
 
 
     /*
-     * Display Tableau DataTable
-     * as an editable HTML table.
+     * Display Tableau data
+     * with editable input column.
      */
 
     function displayTable(dataTable) {
-
-        /*
-         * Clear previous table.
-         */
 
         tableContainer.innerHTML = "";
 
 
         /*
-         * Check for columns.
+         * Validate columns.
          */
 
         if (
@@ -447,7 +576,7 @@
 
 
         /*
-         * Check for rows.
+         * Validate rows.
          */
 
         if (
@@ -466,7 +595,7 @@
 
 
         /*
-         * Create HTML table.
+         * Create table.
          */
 
         const table =
@@ -474,7 +603,7 @@
 
 
         /*
-         * Create table header.
+         * Create header.
          */
 
         const thead =
@@ -485,7 +614,7 @@
 
 
         /*
-         * Add all Tableau columns dynamically.
+         * Add Tableau columns.
          */
 
         dataTable.columns.forEach(
@@ -504,7 +633,7 @@
 
 
         /*
-         * Add our extension column.
+         * Add User Input column.
          */
 
         const inputHeader =
@@ -528,7 +657,7 @@
 
 
         /*
-         * Create table body.
+         * Create body.
          */
 
         const tbody =
@@ -536,8 +665,8 @@
 
 
         /*
-         * Create one row for every
-         * Tableau data row.
+         * Create one HTML row
+         * for every Tableau row.
          */
 
         dataTable.data.forEach(
@@ -548,7 +677,7 @@
 
 
                 /*
-                 * Add Tableau values.
+                 * Add Tableau cells.
                  */
 
                 row.forEach(
@@ -592,7 +721,7 @@
 
 
                 /*
-                 * Add editable input.
+                 * Create input cell.
                  */
 
                 const inputCell =
@@ -615,8 +744,7 @@
 
 
                 /*
-                 * Store the Tableau row index
-                 * on the input element.
+                 * Store Tableau row index.
                  */
 
                 input.dataset.rowIndex =
@@ -651,6 +779,195 @@
         );
 
     }
+
+
+    /*
+     * Submit All
+     */
+
+    submitButton.addEventListener(
+        "click",
+        () => {
+
+            /*
+             * Find all input boxes.
+             */
+
+            const inputs =
+                document.querySelectorAll(
+                    ".user-input"
+                );
+
+
+            /*
+             * Array that will contain
+             * only changed/entered rows.
+             */
+
+            const changedRows = [];
+
+
+            /*
+             * Check every input.
+             */
+
+            inputs.forEach(
+                (input) => {
+
+                    const userValue =
+                        input.value.trim();
+
+
+                    /*
+                     * Ignore empty inputs.
+                     */
+
+                    if (!userValue) {
+
+                        return;
+
+                    }
+
+
+                    const rowIndex =
+                        Number(
+                            input.dataset.rowIndex
+                        );
+
+
+                    const tableauRow =
+                        currentDataTable.data[
+                            rowIndex
+                        ];
+
+
+                    /*
+                     * Build an object containing
+                     * the original Tableau values.
+                     */
+
+                    const rowObject = {};
+
+
+                    currentDataTable.columns.forEach(
+                        (column, columnIndex) => {
+
+                            const cell =
+                                tableauRow[
+                                    columnIndex
+                                ];
+
+
+                            if (
+                                cell &&
+                                cell.formattedValue !== undefined
+                            ) {
+
+                                rowObject[
+                                    column.fieldName
+                                ] =
+                                    cell.formattedValue;
+
+                            }
+
+                            else if (
+                                cell &&
+                                cell.value !== undefined
+                            ) {
+
+                                rowObject[
+                                    column.fieldName
+                                ] =
+                                    cell.value;
+
+                            }
+
+                            else {
+
+                                rowObject[
+                                    column.fieldName
+                                ] = "";
+
+                            }
+
+                        }
+                    );
+
+
+                    /*
+                     * Add the user's value.
+                     */
+
+                    rowObject.UserInput =
+                        userValue;
+
+
+                    /*
+                     * Add this row to
+                     * changedRows.
+                     */
+
+                    changedRows.push(
+                        rowObject
+                    );
+
+                }
+            );
+
+
+            /*
+             * Check whether anything
+             * was entered.
+             */
+
+            if (changedRows.length === 0) {
+
+                status.innerText =
+                    "Please enter a value in at least one row.";
+
+                payloadContainer.style.display =
+                    "none";
+
+                return;
+
+            }
+
+
+            /*
+             * Convert the array to JSON.
+             */
+
+            const payload =
+                JSON.stringify(
+                    changedRows,
+                    null,
+                    2
+                );
+
+
+            /*
+             * Display payload for testing.
+             */
+
+            payloadOutput.value =
+                payload;
+
+
+            payloadContainer.style.display =
+                "block";
+
+
+            status.innerText =
+                changedRows.length +
+                " row(s) ready to submit.";
+
+            console.log(
+                "Payload:",
+                changedRows
+            );
+
+        }
+    );
 
 </script>
 
