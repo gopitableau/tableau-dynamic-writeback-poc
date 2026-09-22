@@ -24,7 +24,7 @@
         <min-api-version>1.17</min-api-version>
 
 <source-location>
-    <url>https://gopitableau.github.io/tableau-cloud-writeback-poc/index.html</url>
+    <url>https://gopitableau.github.io/tableau-dynamic-writeback-poc/index.html</url>
 </source-location>
 
         <icon></icon>
