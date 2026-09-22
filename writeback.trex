@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<manifest manifest-version="0.1"
+    xmlns="http://www.tableau.com/xml/extension_manifest">
+
+    <dashboard-extension
+        id="com.gopi.tableau.writeback"
+        extension-version="0.1.0">
+
+        <default-locale>en_US</default-locale>
+
+        <name resource-id="name"/>
+
+        <description>
+            Tableau Writeback Proof of Concept
+        </description>
+
+        <author
+            name="Gopi"
+            email="gopi@example.com"
+            organization="Tableau Writeback POC"
+            website="https://www.tableau.com"/>
+
+        <min-api-version>1.17</min-api-version>
+
+<source-location>
+    <url>https://gopitableau.github.io/tableau-cloud-writeback-poc/index.html</url>
+</source-location>
+
+        <icon></icon>
+
+    </dashboard-extension>
+
+    <resources>
+
+        <resource id="name">
+
+            <text locale="en_US">
+                Tableau Writeback POC
+            </text>
+
+        </resource>
+
+    </resources>
+
+</manifest>

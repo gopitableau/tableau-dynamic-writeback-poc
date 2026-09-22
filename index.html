@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Tableau Writeback POC</title>
+
+    <style>
+
+        body {
+            margin: 0;
+            padding: 5px;
+            background: transparent;
+            font-family: Arial, sans-serif;
+        }
+
+        .feedback-button {
+            height: 42px;
+            padding: 0 16px 0 10px;
+
+            border: none;
+            border-radius: 22px;
+
+            background: #2c6bed;
+            color: white;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .feedback-icon {
+            width: 30px;
+            height: 30px;
+
+            border-radius: 50%;
+
+            background: white;
+            color: #2c6bed;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 17px;
+        }
+
+        .feedback-button:hover {
+            background: #1f56c7;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<button
+    id="openFeedback"
+    class="feedback-button">
+
+    <span class="feedback-icon">
+        💬
+    </span>
+
+    <span>
+        Give Feedback
+    </span>
+
+</button>
+
+
+<script src="./tableau.extensions.1.latest.js"></script>
+
+
+<script>
+
+tableau.extensions.initializeAsync()
+
+    .then(() => {
+
+        console.log("Tableau Extension connected");
+
+    })
+
+    .catch((error) => {
+
+        console.error(
+            "Extension error:",
+            error
+        );
+
+    });
+
+
+document
+    .getElementById("openFeedback")
+    .addEventListener("click", () => {
+
+        const popupUrl =
+            "https://gopitableau.github.io/tableau-cloud-writeback-poc/feedback.html";
+
+
+        tableau.extensions.ui
+            .displayDialogAsync(
+
+                popupUrl,
+
+                "",
+
+                {
+                    width: 450,
+                    height: 430,
+                    dialogStyle:
+                        tableau.DialogStyle.Modal
+                }
+
+            )
+
+            .then(() => {
+
+                console.log(
+                    "Feedback dialog closed"
+                );
+
+            })
+
+            .catch((error) => {
+
+                console.error(
+                    "Dialog error:",
+                    error
+                );
+
+            });
+
+    });
+
+</script>
+
+</body>
+
+</html>
