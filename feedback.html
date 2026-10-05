@@ -358,6 +358,38 @@
             </div>
 
 
+            <!-- Your Name -->
+
+            <div class="email-field">
+
+                <label for="emailName">
+                    Your Name *
+                </label>
+
+                <input
+                    type="text"
+                    id="emailName"
+                    placeholder="John Smith">
+
+            </div>
+
+
+            <!-- Your Email -->
+
+            <div class="email-field">
+
+                <label for="emailFrom">
+                    Your Email *
+                </label>
+
+                <input
+                    type="email"
+                    id="emailFrom"
+                    placeholder="john.smith@client.com">
+
+            </div>
+
+
             <!-- Subject -->
 
             <div class="email-field">
@@ -517,6 +549,18 @@
         const emailTo =
             document.getElementById(
                 "emailTo"
+            );
+
+
+        const emailName =
+            document.getElementById(
+                "emailName"
+            );
+
+
+        const emailFrom =
+            document.getElementById(
+                "emailFrom"
             );
 
 
@@ -1649,6 +1693,15 @@
                     "";
 
 
+                // Clear sender details
+
+                emailName.value =
+                    "";
+
+                emailFrom.value =
+                    "";
+
+
                 // Automatically populate subject
 
                 if (currentWorksheetName) {
@@ -1741,6 +1794,12 @@
                 const to =
                     emailTo.value.trim();
 
+                const senderName =
+                    emailName.value.trim();
+
+                const senderEmail =
+                    emailFrom.value.trim();
+
                 const subject =
                     emailSubject.value.trim();
 
@@ -1795,6 +1854,68 @@
 
 
                 // --------------------------------------------------
+                // Validate sender name
+                // --------------------------------------------------
+
+                if (!senderName) {
+
+                    emailStatus.textContent =
+                        "Please enter your name.";
+
+                    emailStatus.className =
+                        "email-status email-error";
+
+                    emailStatus.style.display =
+                        "block";
+
+                    emailName.focus();
+
+                    return;
+
+                }
+
+
+                // --------------------------------------------------
+                // Validate sender email
+                // --------------------------------------------------
+
+                if (!senderEmail) {
+
+                    emailStatus.textContent =
+                        "Please enter your email address.";
+
+                    emailStatus.className =
+                        "email-status email-error";
+
+                    emailStatus.style.display =
+                        "block";
+
+                    emailFrom.focus();
+
+                    return;
+
+                }
+
+
+                if (!emailPattern.test(senderEmail)) {
+
+                    emailStatus.textContent =
+                        "Please enter a valid email address.";
+
+                    emailStatus.className =
+                        "email-status email-error";
+
+                    emailStatus.style.display =
+                        "block";
+
+                    emailFrom.focus();
+
+                    return;
+
+                }
+
+
+                // --------------------------------------------------
                 // Validate message
                 // --------------------------------------------------
 
@@ -1828,12 +1949,21 @@
                     to:
                         to,
 
+                    senderName:
+                        senderName,
+
+                    senderEmail:
+                        senderEmail,
+
                     subject:
                         subject ||
                         "Tableau Feedback",
 
                     message:
-                        message
+                        message,
+
+                    worksheet:
+                        currentWorksheetName
 
                 };
 
